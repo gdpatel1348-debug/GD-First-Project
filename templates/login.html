@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh;">
+    <div class="panel" style="width: 100%; max-width: 440px; animation: slideUp 0.5s ease; position: relative;">
+        <!-- Glowing border accent -->
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);"></div>
+        
+        <div style="text-align: center; margin-bottom: 2rem; margin-top: 1rem;">
+            <i data-lucide="shield" style="width: 48px; height: 48px; color: var(--accent-primary); margin-bottom: 1rem;"></i>
+            <h2 class="hero-title" style="font-size: 2rem; margin-bottom: 0.5rem; letter-spacing: -0.02em;">
+                Secure <span class="glow-text">Terminal</span> Access
+            </h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Authenticate to deploy green capital</p>
+        </div>
+
+        {% if error %}
+        <div class="status-badge critical" style="width: 100%; margin-bottom: 1.5rem; justify-content: center; padding: 0.75rem;">
+            <i data-lucide="alert-circle" style="width: 16px; margin-right: 8px;"></i> {{ error }}
+        </div>
+        {% endif %}
+        {% if message %}
+        <div class="status-badge safe" style="width: 100%; margin-bottom: 1.5rem; justify-content: center; padding: 0.75rem;">
+            <i data-lucide="check-circle" style="width: 16px; margin-right: 8px;"></i> {{ message }}
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="/login">
+            <div style="margin-bottom: 1.5rem;">
+                <label style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="mail" style="width: 14px;"></i> Authorized Email
+                </label>
+                <input type="email" name="email" required placeholder="operator@bank.com" style="width: 100%; padding: 0.875rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-family: var(--font-sans); outline: none; transition: border-color 0.2s;">
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="color: var(--text-secondary); font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="key" style="width: 14px;"></i> Security Clearance Code
+                    </label>
+                </div>
+                <input type="password" name="password" required placeholder="••••••••" style="width: 100%; padding: 0.875rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-family: var(--font-sans); outline: none; transition: border-color 0.2s;">
+            </div>
+            
+            <button type="submit" name="action" value="login" class="btn-primary login-btn hover-pulse" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1rem; padding: 0.875rem; font-size: 1rem;">
+                <i data-lucide="log-in" style="width: 18px;"></i> INITIALIZE LOGIN
+            </button>
+            <button type="submit" name="action" value="register" class="btn-outline register-btn" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.875rem; font-size: 0.9rem;">
+                <i data-lucide="user-plus" style="width: 16px;"></i> REGISTER NEW OPERATOR
+            </button>
+        </form>
+    </div>
+</div>
+
+<style>
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+input:focus {
+    border-color: var(--accent-primary) !important;
+    background: rgba(0, 255, 136, 0.05) !important;
+}
+.hover-pulse:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--accent-primary-dim);
+}
+</style>
+
+<script>
+    document.querySelectorAll('button[type="submit"]').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            // Add loading state only if form is valid
+            if (this.closest('form').checkValidity()) {
+                const originalText = this.innerHTML;
+                this.innerHTML = '<i data-lucide="loader" style="width:18px; animation: spin 1s linear infinite;"></i> <span style="margin-left: 0.5rem">PROCESSING...</span>';
+                lucide.createIcons();
+            }
+        });
+    });
+</script>
+{% endblock %}

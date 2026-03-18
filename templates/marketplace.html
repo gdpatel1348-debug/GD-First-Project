@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel-header">
+    <div>
+        <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 0.5rem">
+            Carbon <span class="glow-text">Exchange</span> Terminal
+        </h1>
+        <p class="text-secondary">Tokenized Sustainability Credits Open Market</p>
+    </div>
+    <div class="status-badge safe" style="color: var(--accent-blue); border-color: var(--accent-blue);">
+        <i data-lucide="radio" class="icon-sm" style="margin-right:0.5rem; color: var(--accent-blue)"></i> Market Open
+    </div>
+</div>
+
+<!-- Carbon Accounting 3D Panel -->
+<div class="panel" style="padding:0; margin-bottom: 2rem; border-color: rgba(255, 255, 255, 0.1);">
+    <div style="position: relative; height: 400px; overflow: hidden; background: #000; border-radius: 0.75rem;">
+        <spline-viewer loading-anim-type="spinner-small-light" url="https://prod.spline.design/6Wq1Q7YGyM-iab9i/scene.splinecode"></spline-viewer>
+        <div style="position: absolute; top: 1.5rem; left: 1.5rem; background: rgba(11, 11, 11, 0.8); padding: 0.75rem 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border-color); backdrop-filter: blur(8px);">
+            <div style="color: var(--accent-primary); font-weight: 600; display:flex; align-items:center; gap:0.5rem; font-size: 1.1rem;">
+                <div class="pulse-dot"></div> Live Global Emissions Mapping
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">
+                Visualizing industrial carbon footprints.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="panel">
+        <h2 class="panel-title" style="display:flex; align-items:center;">
+            <i data-lucide="award" class="brand-icon"></i> Mint Credits
+        </h2>
+        <div class="panel-subtitle">Convert GIS into Verified Carbon Credits</div>
+        
+        <div class="score-row" style="margin-top:2rem;">
+            <div class="score-label">Current Impact Score</div>
+            <div class="score-bar-container">
+                <div class="score-bar" style="width: 82.5%; background: var(--accent-primary);"></div>
+            </div>
+            <div class="score-value text-gold">82.5</div>
+        </div>
+        
+        <div style="background: rgba(255,153,0,0.05); border-left: 2px solid var(--accent-orange); padding: 1rem; margin-top: 2rem; color: var(--text-secondary); font-size: 0.85rem">
+            <strong>GIS Calculation Metric:</strong><br>
+            Carbon Reduction (%) / Industry Baseline<br>
+            + Water Saved (%) / Industry Baseline<br>
+            + Waste Diverted (%) / Total Waste
+        </div>
+        <button id="mint-credits-btn" class="btn-primary" style="margin-top: 1.5rem; width: 100%; display:flex; justify-content:center; align-items:center; gap:0.5rem">
+            <i data-lucide="coins" style="width:16px"></i> <span>MINT CREDITS</span>
+        </button>
+    </div>
+    
+    <div class="panel" style="padding:0">
+        <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color)">
+            <h2 class="panel-title">Verified Carbon Credits (VCS)</h2>
+            <div class="panel-subtitle">Live Order Book</div>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Seller</th>
+                    <th>Volume (tCO2e)</th>
+                    <th>Vintage</th>
+                    <th>Price ($/t)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in listings %}
+                <tr>
+                    <td style="font-weight: 500;">{{ item.seller }}</td>
+                    <td style="color: var(--accent-primary); font-family: var(--font-mono)">{{ item.volume }}</td>
+                    <td style="color: var(--text-secondary)">{{ item.vintage }}</td>
+                    <td class="text-gold" style="font-family: var(--font-mono); font-weight: 600;">${{ item.price }}</td>
+                    <td>
+                        <button class="btn-outline" style="padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.5rem">
+                            Buy <i data-lucide="arrow-up-right" style="width: 14px"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Example minting animation
+    document.getElementById('mint-credits-btn').addEventListener('click', function(e) {
+        var btn = e.currentTarget;
+        var iconStr = '<i data-lucide="check" style="width:16px"></i>';
+        btn.innerHTML = '<i data-lucide="loader" style="width:16px; animation: spin 1s linear infinite;"></i> Processing...';
+        lucide.createIcons();
+        setTimeout(function() {
+            btn.innerHTML = iconStr + ' CREDITS MINTED';
+            btn.style.background = 'var(--text-primary)';
+            lucide.createIcons();
+            setTimeout(function() {
+                btn.innerHTML = '<i data-lucide="coins" style="width:16px"></i> MINT CREDITS';
+                btn.style.background = 'var(--accent-primary)';
+                lucide.createIcons();
+            }, 3000);
+        }, 1500);
+    });
+</script>
+<style>
+@keyframes spin { 100% { transform: rotate(360deg); } }
+</style>
+{% endblock %}

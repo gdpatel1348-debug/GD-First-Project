@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="panel-header">
+    <div>
+        <h1 class="hero-title" style="font-size: 2.5rem; margin-bottom: 0.5rem">
+            Lending <span class="glow-text">Command Center</span>
+        </h1>
+        <p class="text-secondary">Green Portfolio Active</p>
+    </div>
+    <div class="status-badge safe" style="height: fit-content;">
+        <i data-lucide="check-circle" class="icon-sm" style="margin-right:0.5rem"></i> System Nominal
+    </div>
+</div>
+
+<!-- Energy Intelligence 3D Panel -->
+<div class="panel" style="padding:0; margin-bottom: 2rem; border-color: rgba(0, 224, 255, 0.2);">
+    <div style="position: relative; height: 350px; overflow: hidden; background: #000; border-radius: 0.75rem;">
+        <spline-viewer loading-anim-type="spinner-small-light" url="https://prod.spline.design/EajEqqPym1w8qLp3/scene.splinecode"></spline-viewer>
+        <div style="position: absolute; bottom: 1.5rem; left: 1.5rem; background: rgba(11, 11, 11, 0.8); padding: 0.75rem 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border-color); backdrop-filter: blur(8px);">
+            <div style="color: var(--accent-blue); font-weight: 600; display:flex; align-items:center; gap:0.5rem; font-size: 1.1rem;">
+                <i data-lucide="zap" style="width:18px;"></i> Energy Intelligence Grid
+            </div>
+            <div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.25rem;">
+                Monitoring renewable assets and grid intensity.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="panel">
+        <h2 class="panel-title" style="display:flex; align-items:center;">
+            <i data-lucide="pie-chart" class="brand-icon"></i> Portfolio Insights
+        </h2>
+        <div class="panel-subtitle">Risk reduction via sustainability scoring</div>
+        <div style="margin-top: 1.5rem; line-height: 1.8; color: var(--text-secondary)">
+            Banks leverage the <strong style="color:var(--text-primary)">Green Credit Score (GCS)</strong> to de-risk portfolios and drive sustainability. <br><br>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-color); padding-bottom:0.5rem;">
+                <span>Score > 90</span><span class="status-badge safe">0.50% reduction</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; border-bottom:1px solid var(--border-color); padding:0.5rem 0;">
+                <span>Score > 80</span><span class="status-badge safe" style="color:var(--accent-blue); border-color:var(--accent-blue)">0.30% reduction</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; padding-top:0.5rem;">
+                <span>Score > 70</span><span class="status-badge safe" style="color:var(--accent-purple); border-color:var(--accent-purple)">0.10% reduction</span>
+            </div>
+        </div>
+    </div>
+    <div class="panel">
+        <h2 class="panel-title" style="display:flex; align-items:center;">
+            <i data-lucide="trending-down" class="brand-icon"></i> Interest Discounts
+        </h2>
+        <div class="panel-subtitle">Calculated live across portfolio</div>
+        <div class="gauge-container" style="flex-direction: row; gap: 2rem;">
+            <div style="text-align: center;">
+                <div class="metric-value">4.2%</div>
+                <div class="metric-change positive">Average Yield Reduced</div>
+            </div>
+            <div style="text-align: center;">
+                <div class="metric-value text-cyan" style="color: var(--accent-blue)">$1.4M</div>
+                <div class="metric-change positive" style="color: var(--accent-blue)">Green Capital Deployed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="panel list-panel" style="padding:0">
+    <div style="padding: 1.5rem; border-bottom: 1px solid var(--border-color)">
+        <h2 class="panel-title">Lending Approvals</h2>
+    </div>
+    <div style="overflow-x: auto;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Factory Name</th>
+                    <th>Industry</th>
+                    <th>Green Credit Score</th>
+                    <th>Green Impact Score</th>
+                    <th>Eligible Interest Discount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for factory in factories %}
+                <tr>
+                    <td style="font-weight: 500;">{{ factory.name }}</td>
+                    <td style="color: var(--text-secondary)">{{ factory.industry }}</td>
+                    <td class="text-gold" style="font-weight: 600; font-family: var(--font-mono)">{{ factory.gcs }}</td>
+                    <td class="text-cyan" style="font-weight: 600; font-family: var(--font-mono)">{{ factory.gis }}</td>
+                    <td class="success" style="color: var(--accent-primary)">
+                        {% if factory.discount > 0 %}-{{ factory.discount }}%{% else %}0%{% endif %}
+                    </td>
+                    <td>
+                        {% if factory.discount > 0.1 %}
+                            <span class="status-badge safe">
+                                <i data-lucide="check" style="width: 14px; margin-right: 4px;"></i> APPROVED
+                            </span>
+                        {% else %}
+                            <span class="status-badge warning">
+                                <i data-lucide="clock" style="width: 14px; margin-right: 4px;"></i> REVIEW
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoCredit India</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Spline 3D Viewer -->
+    <script type="module" src="https://unpkg.com/@splinetool/viewer@1.0.51/build/spline-viewer.js"></script>
+</head>
+<body>
+<!-- ═══════════ BACKGROUND LAYERS ═══════════ -->
+<canvas id="eco-bg-canvas"></canvas>
+<div class="ambient-orb" style="width:600px;height:600px;background:radial-gradient(circle,rgba(0,255,136,.07) 0%,transparent 70%);top:-100px;left:-150px;animation-duration:12s;"></div>
+<div class="ambient-orb" style="width:500px;height:500px;background:radial-gradient(circle,rgba(0,224,255,.06) 0%,transparent 70%);bottom:-100px;right:-100px;animation-duration:15s;animation-delay:-4s;"></div>
+<div class="ambient-orb" style="width:400px;height:400px;background:radial-gradient(circle,rgba(168,85,247,.05) 0%,transparent 70%);top:40%;right:20%;animation-duration:18s;animation-delay:-8s;"></div>
+<div id="grid-overlay"></div>
+<div id="scanline-overlay"></div>
+<div id="vignette"></div>
+<div id="top-glow"></div>
+<div class="corner-bracket tl"></div><div class="corner-bracket tr"></div>
+<div class="corner-bracket bl"></div><div class="corner-bracket br"></div>
+
+    <div class="app-container" style="background: transparent;">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i data-lucide="zap" class="brand-icon"></i>
+                <div class="brand-text">
+                    <span class="brand-name">EcoCredit</span>
+                    <span class="brand-country">INDIA</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item">
+                    <i data-lucide="home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/bank" class="nav-item">
+                    <i data-lucide="shield-check"></i>
+                    <span>Bank Dashboard</span>
+                </a>
+                <a href="/marketplace" class="nav-item">
+                    <i data-lucide="shopping-cart"></i>
+                    <span>Marketplace</span>
+                </a>
+                
+                {% if session.get('user') %}
+                <a href="#" class="nav-item">
+                    <i data-lucide="settings"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <i data-lucide="bell"></i>
+                    <span>Alerts</span>
+                </a>
+                <a href="/logout" class="nav-item" style="color: #ff3366; background: rgba(255, 51, 102, 0.05); margin-top: 0.5rem; transition: all 0.2s;">
+                    <i data-lucide="log-out"></i>
+                    <span>Secure Logout</span>
+                </a>
+                {% else %}
+                <a href="/login" class="nav-item" style="color: var(--accent-primary); background: rgba(0, 255, 136, 0.05); margin-top: 0.5rem;">
+                    <i data-lucide="key"></i>
+                    <span>System Login</span>
+                </a>
+                {% endif %}
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="status-indicator-small">
+                    <div class="pulse-dot"></div>
+                    <span>System Online</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-breadcrumbs">
+                    <span class="text-secondary">Dashboard</span>
+                    <i data-lucide="chevron-right" class="icon-sm"></i>
+                    <span class="text-primary" id="current-page-title">Overview</span>
+                </div>
+                <div class="header-actions">
+                    <a href="/dashboard" style="text-decoration: none;"><button class="btn-primary">Launch Platform</button></a>
+                </div>
+            </header>
+            
+            <div class="page-content">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+    </script>
+    
+    <!-- ═══════════ GREEN CALCULATOR ═══════════ -->
+    <div id="calc-backdrop" onclick="toggleCalc()"></div>
+    <div id="calc-fab-label">🌿 Green Intelligence Suite</div>
+    <button id="calc-fab" onclick="toggleCalc()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+    </button>
+    
+    <div id="calc-panel">
+        <div class="calc-header">
+            <div class="calc-title">
+                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l2 2"/></svg>
+                GREEN INTELLIGENCE SUITE
+            </div>
+            <button class="calc-close" onclick="toggleCalc()">✕</button>
+        </div>
+        <div class="calc-tabs">
+            <button class="calc-tab active" onclick="switchTab('standard',this)">CALCULATOR</button>
+            <button class="calc-tab" onclick="switchTab('carbon',this)">CARBON CALC</button>
+            <button class="calc-tab" onclick="switchTab('gcs',this)">GCS SCORE</button>
+            <button class="calc-tab" onclick="switchTab('loan',this)">LOAN CALC</button>
+            <button class="calc-tab" onclick="switchTab('tips',this)">TIPS</button>
+        </div>
+    
+        <!-- TAB 1: Standard Calculator -->
+        <div id="tab-standard" class="calc-content active">
+            <div class="calc-display-wrap">
+                <div class="calc-expr" id="std-expr"></div>
+                <div class="calc-display" id="std-display">0</div>
+                <div class="calc-memory-status" id="std-mem-status"></div>
+            </div>
+            <div class="calc-buttons">
+                <button class="cb cb-mem" onclick="calcMem('MC')">MC</button>
+                <button class="cb cb-mem" onclick="calcMem('MR')">MR</button>
+                <button class="cb cb-mem" onclick="calcMem('M+')">M+</button>
+                <button class="cb cb-mem" onclick="calcMem('M-')">M−</button>
+                <button class="cb cb-fn"  onclick="calcFn('sqrt')">√</button>
+                <button class="cb cb-clear" onclick="calcClear('CE')">CE</button>
+                <button class="cb cb-clear" onclick="calcClear('C')">C</button>
+                <button class="cb cb-op"   onclick="calcPct()">%</button>
+                <button class="cb cb-fn"   onclick="calcSign()">+/−</button>
+                <button class="cb cb-op"   onclick="calcOp('/')">÷</button>
+                <button class="cb cb-num" onclick="calcNum('7')">7</button>
+                <button class="cb cb-num" onclick="calcNum('8')">8</button>
+                <button class="cb cb-num" onclick="calcNum('9')">9</button>
+                <button class="cb cb-op"  onclick="calcOp('*')">×</button>
+                <button class="cb cb-fn"  onclick="calcParens('(')">(</button>
+                <button class="cb cb-num" onclick="calcNum('4')">4</button>
+                <button class="cb cb-num" onclick="calcNum('5')">5</button>
+                <button class="cb cb-num" onclick="calcNum('6')">6</button>
+                <button class="cb cb-op"  onclick="calcOp('-')">−</button>
+                <button class="cb cb-fn"  onclick="calcParens(')')">)</button>
+                <button class="cb cb-num" onclick="calcNum('1')">1</button>
+                <button class="cb cb-num" onclick="calcNum('2')">2</button>
+                <button class="cb cb-num" onclick="calcNum('3')">3</button>
+                <button class="cb cb-op"  onclick="calcOp('+')">+</button>
+                <button class="cb cb-fn"  onclick="calcBackspace()">⌫</button>
+                <button class="cb cb-num" onclick="calcNum('0')" style="grid-column:span 2">0</button>
+                <button class="cb cb-num" onclick="calcDot()">.</button>
+                <button class="cb cb-eq"  onclick="calcEquals()">=</button>
+                <button class="cb cb-transfer" onclick="calcTransfer()">⇥ TRANSFER TO ANSWER</button>
+            </div>
+        </div>
+    
+        <!-- TAB 2: Carbon Footprint Calculator -->
+        <div id="tab-carbon" class="calc-content">
+            <div class="carbon-calc">
+                <div class="carbon-section">
+                    <label>⚡ Electricity Usage</label>
+                    <div class="carbon-row">
+                        <input class="carbon-input" id="c-elec" type="number" placeholder="e.g. 500" min="0">
+                        <select class="carbon-select" id="c-elec-unit"><option value="kwh_month">kWh/month</option><option value="kwh_year">kWh/year</option></select>
+                    </div>
+                </div>
+                <div class="carbon-section">
+                    <label>🚗 Transportation (km/month)</label>
+                    <div class="carbon-row">
+                        <input class="carbon-input" id="c-car" type="number" placeholder="e.g. 1000" min="0">
+                        <select class="carbon-select" id="c-car-type"><option value="0.21">Petrol Car</option><option value="0.17">Diesel Car</option><option value="0.06">Electric Vehicle</option><option value="0.089">Bus</option><option value="0.041">Train</option></select>
+                    </div>
+                </div>
+                <div class="carbon-section">
+                    <label>✈️ Flights (per year)</label>
+                    <div class="carbon-row">
+                        <input class="carbon-input" id="c-flights" type="number" placeholder="e.g. 2" min="0">
+                        <select class="carbon-select" id="c-flight-type"><option value="255">Short &lt;3h</option><option value="825">Medium 3–6h</option><option value="1755">Long &gt;6h</option></select>
+                    </div>
+                </div>
+                <div class="carbon-section">
+                    <label>🏭 Industrial Fuel (liters/month)</label>
+                    <div class="carbon-row">
+                        <input class="carbon-input" id="c-fuel" type="number" placeholder="e.g. 200" min="0">
+                        <select class="carbon-select" id="c-fuel-type"><option value="2.68">Diesel</option><option value="2.31">Petrol</option><option value="1.89">LPG</option><option value="2.04">Natural Gas</option></select>
+                    </div>
+                </div>
+                <button class="calc-run-btn" onclick="calcCarbon()">⚡ CALCULATE CARBON FOOTPRINT</button>
+                <div id="carbon-result" class="carbon-result-box">
+                    <div class="carbon-result-title">ANNUAL CO₂ EQUIVALENT</div>
+                    <div><span class="carbon-result-value" id="cr-val">0</span><span class="carbon-result-unit">kg CO₂e/year</span></div>
+                    <div class="carbon-result-grade" id="cr-grade"></div>
+                    <div class="carbon-breakdown" id="cr-breakdown"></div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- TAB 3: GCS Estimator -->
+        <div id="tab-gcs" class="calc-content">
+            <div class="gcs-calc">
+                <div class="gcs-slider-group">
+                    <div class="gcs-slider-row"><span class="gcs-slider-label">💰 Financial Health (40% weight)</span><span class="gcs-slider-val" id="gcs-fin-val">50</span></div>
+                    <input type="range" class="gcs-slider" id="gcs-fin" min="0" max="100" value="50" oninput="updateGCS()">
+                </div>
+                <div class="gcs-slider-group">
+                    <div class="gcs-slider-row"><span class="gcs-slider-label">⚡ Energy Efficiency % (30% weight)</span><span class="gcs-slider-val" id="gcs-nrg-val">50</span></div>
+                    <input type="range" class="gcs-slider" id="gcs-nrg" min="0" max="100" value="50" oninput="updateGCS()">
+                </div>
+                <div class="gcs-slider-group">
+                    <div class="gcs-slider-row"><span class="gcs-slider-label">💧 Water Efficiency (15% weight)</span><span class="gcs-slider-val" id="gcs-wtr-val">50</span></div>
+                    <input type="range" class="gcs-slider" id="gcs-wtr" min="0" max="100" value="50" oninput="updateGCS()">
+                </div>
+                <div class="gcs-slider-group">
+                    <div class="gcs-slider-row"><span class="gcs-slider-label">♻️ Waste Recycling % (10% weight)</span><span class="gcs-slider-val" id="gcs-wst-val">50</span></div>
+                    <input type="range" class="gcs-slider" id="gcs-wst" min="0" max="100" value="50" oninput="updateGCS()">
+                </div>
+                <div class="gcs-slider-group">
+                    <div class="gcs-slider-row"><span class="gcs-slider-label">🔗 Supply Chain Score (5% weight)</span><span class="gcs-slider-val" id="gcs-sup-val">80</span></div>
+                    <input type="range" class="gcs-slider" id="gcs-sup" min="0" max="100" value="80" oninput="updateGCS()">
+                </div>
+                <div class="gcs-result">
+                    <div class="gcs-score-big" id="gcs-score-big">62</div>
+                    <div class="gcs-score-label">GREEN CREDIT SCORE (0–100)</div>
+                    <div class="gcs-tier" id="gcs-tier"></div>
+                    <div class="gcs-discount" id="gcs-discount"></div>
+                    <div class="gcs-bar-wrap"><div class="gcs-bar" id="gcs-bar" style="width:62%"></div></div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- TAB 4: Green Loan Calculator -->
+        <div id="tab-loan" class="calc-content">
+            <div class="loan-calc">
+                <div class="loan-field"><label>Loan Amount (₹)</label><input class="loan-input" id="l-amount" type="number" value="10000000"></div>
+                <div class="loan-field"><label>Base Interest Rate (%)</label><input class="loan-input" id="l-rate" type="number" value="8.5" step="0.1"></div>
+                <div class="loan-field"><label>Loan Tenure (years)</label><input class="loan-input" id="l-tenure" type="number" value="10"></div>
+                <div class="loan-field"><label>Green Credit Score (0–100)</label><input class="loan-input" id="l-gcs" type="number" value="75" min="0" max="100"></div>
+                <button class="calc-run-btn blue" onclick="calcLoan()">💰 CALCULATE GREEN LOAN EMI</button>
+                <div id="loan-result" style="display:none">
+                    <div class="loan-result-grid">
+                        <div class="loan-result-card"><div class="loan-result-num" id="lr-base-emi">—</div><div class="loan-result-lbl">Standard EMI/mo</div></div>
+                        <div class="loan-result-card highlight"><div class="loan-result-num green" id="lr-green-emi">—</div><div class="loan-result-lbl">Green EMI/mo</div></div>
+                        <div class="loan-result-card"><div class="loan-result-num" id="lr-total-int">—</div><div class="loan-result-lbl">Total Interest (Std)</div></div>
+                        <div class="loan-result-card savings"><div class="loan-result-num blue" id="lr-savings">—</div><div class="loan-result-lbl">Your Green Savings</div></div>
+                    </div>
+                    <div id="lr-discount-badge" style="text-align:center;margin-top:.75rem;font-family:var(--font-mono);font-size:.72rem;color:var(--accent-primary);line-height:1.6"></div>
+                </div>
+            </div>
+        </div>
+    
+        <!-- TAB 5: Tips -->
+        <div id="tab-tips" class="calc-content">
+            <div class="tips-section">
+                <div class="tip-card">
+                    <div class="tip-title">⌨️ USE KEYBOARD FOR SPEED</div>
+                    <div class="tip-body">Type numbers and operators (+ - * /) directly. Press Enter or = to evaluate. Backspace deletes last digit. Esc closes the calculator.</div>
+                </div>
+                <div class="tip-card blue">
+                    <div class="tip-title">🧠 PEMDAS ORDER OF OPERATIONS</div>
+                    <div class="tip-body">The calculator follows PEMDAS: Parentheses → Exponents → Multiply/Divide → Add/Subtract. Use ( ) buttons to group expressions correctly.</div>
+                </div>
+                <div class="tip-card purple">
+                    <div class="tip-title">💾 MEMORY FUNCTIONS</div>
+                    <div class="tip-body"><b>M+</b> adds current value to memory. <b>MR</b> recalls memory. <b>MC</b> clears memory. <b>M−</b> subtracts from memory. Blue M indicator shows memory is active.</div>
+                </div>
+                <div class="tip-card orange">
+                    <div class="tip-title">⇥ TRANSFER BUTTON</div>
+                    <div class="tip-body">Click Transfer to copy the displayed result to your clipboard instantly — paste it directly into GCS Score or Loan Calculator fields.</div>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-title">🌿 GCS SCORING FORMULA</div>
+                    <div class="tip-body">GCS = 0.40×Financial + 0.30×Energy + 0.15×Water + 0.10×Waste + 0.05×Supply Chain. Score above 90 → 0.50% interest discount.</div>
+                </div>
+                <div class="tip-card blue">
+                    <div class="tip-title">🏭 INDIA CARBON FACTORS USED</div>
+                    <div class="tip-body">Grid emission factor: 0.82 kg CO₂/kWh (India CEA 2023). Petrol car: 0.21 kg/km. Diesel: 0.17 kg/km. EV: 0.06 kg/km. Short-haul flight: ~255 kg CO₂ per trip.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function(){
+        const pos=[8,22,38,55,68,82,92],clr=['#00ff88','#00e0ff','#00ff88','#a855f7','#00e0ff','#00ff88','#00ff88'];
+        pos.forEach((p,i)=>{
+            const el=document.createElement('div');el.className='data-stream';el.style.left=p+'%';
+            const inn=document.createElement('div');inn.className='data-stream-inner';
+            inn.style.cssText=`animation-duration:${(6+Math.random()*8).toFixed(1)}s;animation-delay:${(Math.random()*-10).toFixed(1)}s;height:${(30+Math.random()*50).toFixed(0)}vh;background:linear-gradient(180deg,transparent 0%,${clr[i]}80 50%,transparent 100%);`;
+            el.appendChild(inn);document.body.appendChild(el);
+        });
+    })();
+    </script>
+
+    <script>
+    (function(){
+        const canvas=document.getElementById('eco-bg-canvas'),ctx=canvas.getContext('2d');
+        let W,H;
+        function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+        resize();window.addEventListener('resize',resize);
+        const mouse={x:.5,y:.5};
+        document.addEventListener('mousemove',e=>{mouse.x=e.clientX/window.innerWidth;mouse.y=e.clientY/window.innerHeight;});
+        const C={green:'rgba(0,255,136,',cyan:'rgba(0,224,255,',purple:'rgba(168,85,247,'};
+        const NODE_COUNT=70;const nodes=[];
+        class Node{constructor(){this.reset();}reset(){this.x=Math.random()*1.4-.2;this.y=Math.random()*1.4-.2;this.vx=(Math.random()-.5)*.0003;this.vy=(Math.random()-.5)*.0003;this.r=Math.random()*1.5+.5;const r=Math.random();this.color=r<.6?C.green:r<.85?C.cyan:C.purple;this.pulse=Math.random()*Math.PI*2;this.pulseSpeed=.02+Math.random()*.03;}
+        update(){this.x+=this.vx+(mouse.x-.5)*.00008;this.y+=this.vy+(mouse.y-.5)*.00008;this.pulse+=this.pulseSpeed;if(this.x<-.3||this.x>1.3||this.y<-.3||this.y>1.3)this.reset();}
+        draw(){const px=this.x*W,py=this.y*H,r=this.r*(1+Math.sin(this.pulse)*.3),a=.6+Math.sin(this.pulse)*.3;ctx.save();ctx.globalAlpha=a;ctx.globalCompositeOperation='lighter';const g=ctx.createRadialGradient(px,py,0,px,py,r*5);g.addColorStop(0,this.color+'0.8)');g.addColorStop(.3,this.color+'0.3)');g.addColorStop(1,this.color+'0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(px,py,r*5,0,Math.PI*2);ctx.fill();ctx.fillStyle=this.color+'1)';ctx.beginPath();ctx.arc(px,py,r,0,Math.PI*2);ctx.fill();ctx.restore();}}
+        for(let i=0;i<NODE_COUNT;i++)nodes.push(new Node());
+        function drawEdges(){const L=.18;ctx.save();ctx.globalCompositeOperation='lighter';for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<L){const t=1-d/L;ctx.strokeStyle=nodes[i].color+(t*.25)+')';ctx.lineWidth=t*1.2;ctx.beginPath();ctx.moveTo(nodes[i].x*W,nodes[i].y*H);ctx.lineTo(nodes[j].x*W,nodes[j].y*H);ctx.stroke();}}ctx.restore();}
+        function drawHexGrid(t){const COLS=12,ROWS=8,HEX_R=W/(COLS*1.8),HW=HEX_R*Math.sqrt(3),HH=HEX_R*2,ox=W*.5,oy=H*.72;ctx.save();ctx.globalCompositeOperation='source-over';for(let row=-2;row<ROWS;row++)for(let col=-2;col<COLS+2;col++){const isOdd=col%2,cx=ox+(col-COLS/2)*HW,cy=oy+(row-ROWS/2)*HH*.75+(isOdd?HH*.375:0),perspY=oy+(cy-oy)*.35,perspX=ox+(cx-ox)*(.5+(perspY/H)*.5),dist=Math.sqrt((cx-ox)**2+(cy-oy)**2),wave=Math.sin(t*.8-dist*.012+row*.3)*.5+.5,alpha=wave*.12*(1-dist/(W*.7));if(alpha<.005)continue;ctx.globalAlpha=alpha;ctx.strokeStyle='#00ff88';ctx.lineWidth=.8;ctx.beginPath();for(let k=0;k<6;k++){const ang=Math.PI/6+k*Math.PI/3,hx=perspX+HW*.5*Math.cos(ang),hy=perspY+HW*.5*Math.sin(ang)*.4;k===0?ctx.moveTo(hx,hy):ctx.lineTo(hx,hy);}ctx.closePath();ctx.stroke();if(wave>.88){ctx.globalAlpha=(wave-.88)*.4;ctx.fillStyle='#00ff88';ctx.fill();}}ctx.restore();}
+        function drawOrbitalRings(t){const cx=W*(.72+Math.sin(t*.1)*.05),cy=H*(.28+Math.cos(t*.07)*.04);[{r:W*.12,color:C.green,speed:.15,tilt:.35,lineW:1,d:[8,14]},{r:W*.19,color:C.cyan,speed:-.09,tilt:.55,lineW:.7,d:[4,20]},{r:W*.27,color:C.purple,speed:.06,tilt:.25,lineW:.5,d:[12,8]}].forEach(ring=>{const angle=t*ring.speed;ctx.save();ctx.globalCompositeOperation='lighter';ctx.translate(cx,cy);ctx.rotate(angle*.3);ctx.scale(1,ring.tilt);ctx.globalAlpha=.35;ctx.strokeStyle=ring.color+'0.8)';ctx.lineWidth=ring.lineW;ctx.setLineDash(ring.d);ctx.beginPath();ctx.arc(0,0,ring.r,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);const dX=Math.cos(angle)*ring.r,dY=Math.sin(angle)*ring.r*ring.tilt;ctx.scale(1,1/ring.tilt);const dg=ctx.createRadialGradient(dX,dY/ring.tilt,0,dX,dY/ring.tilt,12);dg.addColorStop(0,ring.color+'1)');dg.addColorStop(1,ring.color+'0)');ctx.globalAlpha=.9;ctx.fillStyle=dg;ctx.beginPath();ctx.arc(dX,dY/ring.tilt,12,0,Math.PI*2);ctx.fill();ctx.restore();});}
+        function drawPulseWaves(t){[{x:W*.15,y:H*.8,color:C.green,interval:4},{x:W*.72,y:H*.25,color:C.cyan,interval:6},{x:W*.5,y:H*.5,color:C.purple,interval:8}].forEach(o=>{for(let i=0;i<4;i++){const phase=(t/o.interval+i/4)%1,r=phase*Math.min(W,H)*.45,alpha=(1-phase)*.12;if(alpha<.002)continue;ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=alpha;ctx.strokeStyle=o.color+'1)';ctx.lineWidth=(1-phase)*1.5;ctx.beginPath();ctx.arc(o.x,o.y,r,0,Math.PI*2);ctx.stroke();ctx.restore();}});}
+        const GLYPHS=['01','10','Σ','∇','λ','CO₂','GCS','IoT','ESG','kWh','ppm','GIS','0xFF','///','⌬','◈'];
+        const gObjs=Array.from({length:22},()=>({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.0002,vy:-(Math.random()*.0003+.0001),text:GLYPHS[Math.floor(Math.random()*GLYPHS.length)],alpha:Math.random()*.4+.05,size:Math.random()*5+8,phase:Math.random()*Math.PI*2,color:Math.random()<.5?C.green:Math.random()<.5?C.cyan:C.purple}));
+        function drawGlyphs(t){ctx.save();ctx.globalCompositeOperation='lighter';gObjs.forEach(g=>{g.x+=g.vx;g.y+=g.vy;if(g.y<-.05){g.y=1.05;g.x=Math.random();}const a=g.alpha*(.6+Math.sin(t*.5+g.phase)*.4);ctx.globalAlpha=a;ctx.fillStyle=g.color+'1)';ctx.font=`${g.size}px 'Orbitron',monospace`;ctx.fillText(g.text,g.x*W,g.y*H);});ctx.restore();}
+        let lastArc=0,arcData=null;
+        function maybeTriggerArc(t){if(t-lastArc>4+Math.random()*6){lastArc=t;arcData={x1:Math.random()*W,y1:Math.random()*H*.6,x2:Math.random()*W,y2:Math.random()*H*.6+H*.2,life:1,color:Math.random()<.5?C.cyan:C.green};}}
+        function drawArc(){if(!arcData||arcData.life<=0)return;arcData.life-=.06;const steps=12,dx=(arcData.x2-arcData.x1)/steps,dy=(arcData.y2-arcData.y1)/steps;ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=arcData.life*.7;ctx.strokeStyle=arcData.color+'1)';ctx.lineWidth=arcData.life*2;ctx.shadowBlur=20;ctx.shadowColor=arcData.color+'1)';ctx.beginPath();ctx.moveTo(arcData.x1,arcData.y1);for(let i=1;i<=steps;i++)ctx.lineTo(arcData.x1+dx*i+(Math.random()-.5)*40*arcData.life,arcData.y1+dy*i+(Math.random()-.5)*40*arcData.life);ctx.stroke();ctx.restore();}
+        const startTime=performance.now();
+        function draw(){requestAnimationFrame(draw);const t=(performance.now()-startTime)/1000;ctx.fillStyle='rgba(2,4,8,0.25)';ctx.fillRect(0,0,W,H);const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'rgba(2,4,8,0)');bg.addColorStop(.6,'rgba(4,8,16,.1)');bg.addColorStop(1,'rgba(2,4,8,.4)');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);drawHexGrid(t);drawPulseWaves(t);drawEdges();nodes.forEach(n=>{n.update();n.draw();});drawOrbitalRings(t);drawGlyphs(t);maybeTriggerArc(t);drawArc();}
+        draw();
+    })();
+    </script>
+    
+    <!-- ═══════════ CALCULATOR JS ═══════════ -->
+    <script>
+    let calcOpen=false;
+    function toggleCalc(){
+        calcOpen=!calcOpen;
+        document.getElementById('calc-panel').classList.toggle('open',calcOpen);
+        document.getElementById('calc-backdrop').classList.toggle('open',calcOpen);
+        if(calcOpen) updateGCS();
+    }
+    function switchTab(name,btn){
+        document.querySelectorAll('.calc-tab').forEach(t=>t.classList.remove('active'));
+        document.querySelectorAll('.calc-content').forEach(c=>c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-'+name).classList.add('active');
+        if(name==='gcs') updateGCS();
+    }
+    
+    // ── STANDARD CALC ──────────────────────────
+    let stdExpr='',stdDisplay='0',stdMemory=0,stdHasMemory=false,stdJustEvaled=false;
+    function setDisplay(v){const s=String(v);stdDisplay=s.length>12?parseFloat(v).toExponential(5):s;document.getElementById('std-display').textContent=stdDisplay;}
+    function setExpr(v){document.getElementById('std-expr').textContent=v;}
+    function setMemStatus(){document.getElementById('std-mem-status').textContent=stdHasMemory?'MEM: '+stdMemory:'';}
+    function calcNum(n){if(stdJustEvaled){stdExpr='';stdDisplay='0';stdJustEvaled=false;}if(stdDisplay==='0'||stdDisplay==='-0')stdDisplay='';if(stdDisplay.replace(/[^0-9]/g,'').length>=10)return;stdDisplay+=n;setDisplay(stdDisplay);}
+    function calcDot(){if(stdJustEvaled){stdExpr='';stdDisplay='0';stdJustEvaled=false;}if(!stdDisplay.includes('.')){stdDisplay+='.';setDisplay(stdDisplay);}}
+    function calcOp(op){if(stdJustEvaled)stdJustEvaled=false;stdExpr+=stdDisplay+' '+op+' ';setExpr(stdExpr);stdDisplay='0';setDisplay(stdDisplay);}
+    function calcPct(){setDisplay(parseFloat(stdDisplay)/100);}
+    function calcSign(){setDisplay(-parseFloat(stdDisplay));}
+    function calcFn(fn){if(fn==='sqrt')setDisplay(Math.sqrt(parseFloat(stdDisplay)));}
+    function calcParens(p){stdExpr+=p;setExpr(stdExpr);}
+    function calcBackspace(){stdDisplay=stdDisplay.length>1?stdDisplay.slice(0,-1):'0';setDisplay(stdDisplay);}
+    function calcClear(type){if(type==='C'){stdExpr='';stdDisplay='0';setExpr('');setDisplay('0');}else{stdDisplay='0';setDisplay('0');}}
+    function calcEquals(){
+        try{
+            const full=stdExpr+stdDisplay;
+            setExpr(full+' =');
+            const result=Function('"use strict";return ('+full+')')();
+            if(!isFinite(result)){setDisplay('ERROR');stdExpr='';return;}
+            setDisplay(parseFloat(result.toFixed(10)));
+            stdExpr='';stdJustEvaled=true;
+        }catch(e){setDisplay('ERROR');stdExpr='';}
+    }
+    function calcMem(action){
+        const v=parseFloat(stdDisplay);
+        if(action==='M+'){stdMemory+=v;stdHasMemory=true;}
+        else if(action==='M-'){stdMemory-=v;stdHasMemory=true;}
+        else if(action==='MR'){setDisplay(stdMemory);}
+        else if(action==='MC'){stdMemory=0;stdHasMemory=false;}
+        setMemStatus();
+    }
+    function calcTransfer(){
+        const val=document.getElementById('std-display').textContent;
+        navigator.clipboard?.writeText(val);
+        const el=document.getElementById('std-display');
+        el.style.color='var(--accent-blue)';
+        el.style.transition='color .1s';
+        setTimeout(()=>{el.style.color='var(--accent-primary)';},500);
+    }
+    document.addEventListener('keydown',e=>{
+        if(!calcOpen)return;
+        const activeTab=document.querySelector('.calc-tab.active');
+        if(!activeTab||activeTab.textContent.trim()!=='CALCULATOR')return;
+        if('0123456789'.includes(e.key))calcNum(e.key);
+        else if(e.key==='.')calcDot();
+        else if(e.key==='+')calcOp('+');
+        else if(e.key==='-')calcOp('-');
+        else if(e.key==='*')calcOp('*');
+        else if(e.key==='/'){e.preventDefault();calcOp('/');}
+        else if(e.key==='Enter'||e.key==='=')calcEquals();
+        else if(e.key==='Escape')toggleCalc();
+        else if(e.key==='Backspace')calcBackspace();
+    });
+    
+    // ── CARBON CALCULATOR ──────────────────────
+    function calcCarbon(){
+        const elec=parseFloat(document.getElementById('c-elec').value)||0;
+        const elecU=document.getElementById('c-elec-unit').value;
+        const car=parseFloat(document.getElementById('c-car').value)||0;
+        const carEF=parseFloat(document.getElementById('c-car-type').value);
+        const flights=parseFloat(document.getElementById('c-flights').value)||0;
+        const flightKG=parseFloat(document.getElementById('c-flight-type').value);
+        const fuel=parseFloat(document.getElementById('c-fuel').value)||0;
+        const fuelEF=parseFloat(document.getElementById('c-fuel-type').value);
+        const GRID_EF=0.82;
+        const elecAnn=elecU==='kwh_month'?elec*12:elec;
+        const elecKG=elecAnn*GRID_EF,carKG=car*12*carEF,fltKG=flights*flightKG,fuelKG=fuel*12*fuelEF;
+        const total=elecKG+carKG+fltKG+fuelKG;
+        let grade,gradeColor;
+        if(total<2000){grade='🌿 EXCELLENT — Below global average';gradeColor='#00ff88';}
+        else if(total<4000){grade='✅ GOOD — Near average';gradeColor='#00e0ff';}
+        else if(total<8000){grade='⚠️ MODERATE — Above average';gradeColor='#ff9900';}
+        else if(total<15000){grade='🔴 HIGH — Significantly above average';gradeColor='#ff3366';}
+        else{grade='💀 CRITICAL — Urgent reduction needed';gradeColor='#ff0044';}
+        document.getElementById('cr-val').textContent=Math.round(total).toLocaleString('en-IN');
+        document.getElementById('cr-grade').innerHTML=`<span style="color:${gradeColor}">${grade}</span>`;
+        document.getElementById('cr-breakdown').innerHTML=`⚡ Electricity: <b>${Math.round(elecKG).toLocaleString()}</b> kg &nbsp;|&nbsp; 🚗 Transport: <b>${Math.round(carKG).toLocaleString()}</b> kg &nbsp;|&nbsp; ✈️ Flights: <b>${Math.round(fltKG).toLocaleString()}</b> kg &nbsp;|&nbsp; 🏭 Fuel: <b>${Math.round(fuelKG).toLocaleString()}</b> kg`;
+        const box=document.getElementById('carbon-result');box.classList.add('show');box.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }
+    
+    // ── GCS ESTIMATOR ──────────────────────────
+    function updateGCS(){
+        ['fin','nrg','wtr','wst','sup'].forEach(k=>{
+            const el=document.getElementById('gcs-'+k);if(!el)return;
+            const val=parseInt(el.value);
+            document.getElementById('gcs-'+k+'-val').textContent=val;
+            el.style.setProperty('--pct',val+'%');
+        });
+        const fin=parseInt(document.getElementById('gcs-fin').value)||0;
+        const nrg=parseInt(document.getElementById('gcs-nrg').value)||0;
+        const wtr=parseInt(document.getElementById('gcs-wtr').value)||0;
+        const wst=parseInt(document.getElementById('gcs-wst').value)||0;
+        const sup=parseInt(document.getElementById('gcs-sup').value)||0;
+        const score=Math.round(.40*fin+.30*nrg+.15*wtr+.10*wst+.05*sup);
+        document.getElementById('gcs-score-big').textContent=score;
+        document.getElementById('gcs-bar').style.width=score+'%';
+        let tier,tierColor,disc;
+        if(score>=90){tier='🏆 PLATINUM TIER';tierColor='#fbbf24';disc='Interest Discount: −0.50% per annum';}
+        else if(score>=80){tier='🥇 GOLD TIER';tierColor='#00ff88';disc='Interest Discount: −0.30% per annum';}
+        else if(score>=70){tier='🥈 SILVER TIER';tierColor='#00e0ff';disc='Interest Discount: −0.10% per annum';}
+        else if(score>=50){tier='🟡 BRONZE TIER';tierColor='#ff9900';disc='No discount — improve score above 70';}
+        else{tier='🔴 SUBSTANDARD';tierColor='#ff3366';disc='Not eligible for green financing';}
+        document.getElementById('gcs-tier').innerHTML=`<span style="color:${tierColor}">${tier}</span>`;
+        document.getElementById('gcs-discount').textContent=disc;
+    }
+    
+    // ── LOAN CALCULATOR ──────────────────────────
+    function calcLoan(){
+        const P=parseFloat(document.getElementById('l-amount').value)||0;
+        const baseRate=parseFloat(document.getElementById('l-rate').value)||0;
+        const years=parseFloat(document.getElementById('l-tenure').value)||1;
+        const gcs=parseFloat(document.getElementById('l-gcs').value)||0;
+        let disc=0;
+        if(gcs>90)disc=0.50;else if(gcs>80)disc=0.30;else if(gcs>70)disc=0.10;
+        function emi(principal,annualRate,yrs){const r=annualRate/100/12,n=yrs*12;if(r===0)return principal/n;return principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);}
+        const stdEMI=emi(P,baseRate,years),greenEMI=emi(P,baseRate-disc,years);
+        const stdInt=stdEMI*years*12-P,greenInt=greenEMI*years*12-P,savings=stdInt-greenInt;
+        function fmt(n){return'₹ '+Math.round(n).toLocaleString('en-IN');}
+        document.getElementById('lr-base-emi').textContent=fmt(stdEMI);
+        document.getElementById('lr-green-emi').textContent=fmt(greenEMI);
+        document.getElementById('lr-total-int').textContent=fmt(stdInt);
+        document.getElementById('lr-savings').textContent=fmt(savings);
+        document.getElementById('lr-discount-badge').innerHTML=disc>0
+            ?`🌿 Green Discount Applied: −${disc}% &nbsp;→&nbsp; Effective Rate: ${(baseRate-disc).toFixed(2)}%<br><span style="color:var(--accent-blue)">You save ${fmt(savings)} over ${years} years!</span>`
+            :`⚠️ GCS score must exceed 70 to qualify for green loan discount`;
+        document.getElementById('loan-result').style.display='block';
+    }
+    </script>
+</body>
+</html>
