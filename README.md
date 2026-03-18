@@ -75,3 +75,5 @@ To use the external integrations in `apis.py`, you will need to obtain free API 
 4. **Sentinel Hub (Satellite Imagery for Reforestation/Deforestation)**
    - **Purpose:** Analyzes satellite data to verify land-use claims.
    - **Get a Free Key:** Create a free trial account at [https://www.sentinel-hub.com](https://www.sentinel-hub.com). Navigate to your dashboard to create an OAuth Client ID and Secret.
+# GD-First-Project
+Just Fintech Project
